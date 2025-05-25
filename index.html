@@ -15,7 +15,7 @@
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-    const map = L.map('map').setView([36.94303330, 24.75455280], 18);
+    const map = L.map('map').setView([36.9457, 24.7559], 18);
 
     const streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors'
@@ -26,6 +26,61 @@
     });
 
     L.control.layers({ "Streets": streets, "Satellite": satellite }).addTo(map);
+
+    // Airtable API configuration
+    const airtableToken = "patTuKbZCmrd1cGDR.80fe79db151a03b5489275ef8815b1625c13d5acd2a3bcb445512c032ecb180b";
+    const baseId = "appuRVEX7ET1BArbF";
+    const tableName = "Aeternal Properties";
+    const viewName = "Sorted View";
+
+    const apiUrl = `https://api.airtable.com/v0/${baseId}/${encodeURIComponent(tableName)}?view=${encodeURIComponent(viewName)}`;
+
+    fetch(apiUrl, {
+      headers: {
+        Authorization: `Bearer ${airtableToken}`
+      }
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status} - ${response.statusText}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      if (!data.records) {
+        console.error("No records returned:", data);
+        return;
+      }
+
+      data.records.forEach(record => {
+        const geojsonField = record.fields["geojson"];
+        if (geojsonField) {
+          try {
+            const geojson = typeof geojsonField === 'string'
+              ? JSON.parse(geojsonField)
+              : geojsonField;
+
+            L.geoJSON(geojson, {
+              onEachFeature: function (feature, layer) {
+                const popupText = feature.properties?.description || feature.properties?.name || "No description";
+                layer.bindPopup(popupText);
+              },
+              style: feature => ({
+                color: feature.properties?.stroke || "#3388ff",
+                fillColor: feature.properties?.fill || "#3388ff",
+                fillOpacity: feature.properties?.["fill-opacity"] || 0.5,
+                weight: feature.properties?.["stroke-width"] || 2,
+              })
+            }).addTo(map);
+          } catch (e) {
+            console.error("Invalid GeoJSON in record:", record.id, e);
+          }
+        }
+      });
+    })
+    .catch(error => {
+      console.error("Error fetching Airtable data:", error);
+    });
   </script>
 </body>
 </html>
