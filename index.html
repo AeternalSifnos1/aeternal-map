@@ -27,6 +27,27 @@
 
     L.control.layers({ "Streets": streets, "Satellite": satellite }).addTo(map);
 
+    // 🔹 Load background layer with all properties (static GeoJSON)
+    fetch("all_properties.geojson")
+      .then(response => response.json())
+      .then(geojson => {
+        L.geoJSON(geojson, {
+          style: {
+            color: "#888",
+            weight: 1,
+            fillOpacity: 0.1
+          },
+          onEachFeature: function (feature, layer) {
+            const name = feature.properties?.name || "Unnamed";
+            layer.bindPopup("All property: " + name);
+          }
+        }).addTo(map);
+      })
+      .catch(error => {
+        console.error("Failed to load background properties:", error);
+      });
+
+    // 🔸 Load active properties from Airtable (Sorted View)
     const airtableToken = "patTuKbZCmrd1cGDR.80fe79db151a03b5489275ef8815b1625c13d5acd2a3bcb445512c032ecb180b";
     const baseId = "appuRVEX7ET1BArbF";
     const tableName = "Aeternal Properties";
@@ -46,7 +67,7 @@
       return response.json();
     })
     .then(data => {
-      console.log("✅ Airtable response:", data); // 🔍 Debug line
+      console.log("✅ Airtable response:", data); // Debug log
 
       if (!data.records) {
         console.error("No records returned:", data);
