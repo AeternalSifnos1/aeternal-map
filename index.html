@@ -21,4 +21,67 @@
       attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    const satellite = L.tileLayer('http
+    const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles © Esri'
+    });
+
+    L.control.layers({ "Streets": streets, "Satellite": satellite }).addTo(map);
+
+    const airtableToken = "patTuKbZCmrd1cGDR.80fe79db151a03b5489275ef8815b1625c13d5acd2a3bcb445512c032ecb180b";
+    const baseId = "appuRVEX7ET1BArbF";
+    const tableName = "Aeternal Properties";
+    const viewName = "Sorted View";
+
+    const apiUrl = `https://api.airtable.com/v0/${baseId}/${encodeURIComponent(tableName)}?view=${encodeURIComponent(viewName)}`;
+
+    fetch(apiUrl, {
+      headers: {
+        Authorization: `Bearer ${airtableToken}`
+      }
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status} - ${response.statusText}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log("✅ Airtable response:", data); // 🔍 Debug line
+
+      if (!data.records) {
+        console.error("No records returned:", data);
+        return;
+      }
+
+      data.records.forEach(record => {
+        const geojsonField = record.fields["geojson"];
+        if (geojsonField) {
+          try {
+            const geojson = typeof geojsonField === 'string'
+              ? JSON.parse(geojsonField)
+              : geojsonField;
+
+            L.geoJSON(geojson, {
+              onEachFeature: function (feature, layer) {
+                const popupText = feature.properties?.description || feature.properties?.name || "No description";
+                layer.bindPopup(popupText);
+              },
+              style: feature => ({
+                color: feature.properties?.stroke || "#3388ff",
+                fillColor: feature.properties?.fill || "#3388ff",
+                fillOpacity: feature.properties?.["fill-opacity"] || 0.5,
+                weight: feature.properties?.["stroke-width"] || 2,
+              })
+            }).addTo(map);
+          } catch (e) {
+            console.error("Invalid GeoJSON in record:", record.id, e);
+          }
+        }
+      });
+    })
+    .catch(error => {
+      console.error("Error fetching Airtable data:", error);
+    });
+  </script>
+</body>
+</html>
