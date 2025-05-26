@@ -28,24 +28,43 @@
     L.control.layers({ "Streets": streets, "Satellite": satellite }).addTo(map);
 
     // 🔹 Load background layer with all properties (static GeoJSON)
-    fetch("https://raw.githubusercontent.com/AeternalSifnos1/aeternal-map/main/all_properties.geojson")
-      .then(response => response.json())
-      .then(geojson => {
-        L.geoJSON(geojson, {
-          style: {
-            color: "#888",
-            weight: 1,
-            fillOpacity: 0.1
-          },
-          onEachFeature: function (feature, layer) {
-            const name = feature.properties?.name || "Unnamed";
-            layer.bindPopup("All property: " + name);
-          }
-        }).addTo(map);
-      })
-      .catch(error => {
-        console.error("Failed to load background properties:", error);
-      });
+   fetch("https://raw.githubusercontent.com/AeternalSifnos1/aeternal-map/main/all_properties.geojson")
+  .then(response => {
+    console.log("📦 Fetch response:", response);
+    if (!response.ok) {
+      throw new Error(`❌ HTTP error ${response.status}: ${response.statusText}`);
+    }
+    return response.text(); // Get raw text first
+  })
+  .then(text => {
+    console.log("📄 Raw GeoJSON text:", text.slice(0, 500)); // First 500 characters
+    let geojson;
+    try {
+      geojson = JSON.parse(text); // Parse manually to catch errors
+    } catch (e) {
+      console.error("❌ JSON parse error:", e.message);
+      throw e;
+    }
+
+    const layer = L.geoJSON(geojson, {
+      style: {
+        color: "#888",
+        weight: 1,
+        fillOpacity: 0.1
+      },
+      onEachFeature: function (feature, layer) {
+        const name = feature.properties?.name || "Unnamed";
+        layer.bindPopup("All property: " + name);
+      }
+    }).addTo(map);
+
+    console.log("✅ GeoJSON layer added:", layer);
+    map.fitBounds(layer.getBounds());
+  })
+  .catch(error => {
+    console.error("🚨 Failed to load background properties:", error);
+  });
+
 
     // 🔸 Load active properties from Airtable (Sorted View)
     const airtableToken = "patTuKbZCmrd1cGDR.80fe79db151a03b5489275ef8815b1625c13d5acd2a3bcb445512c032ecb180b";
