@@ -27,14 +27,14 @@
 
     L.control.layers({ "Streets": streets, "Satellite": satellite }).addTo(map);
 
-    // 🔹 Load background layer with all properties (static GeoJSON)
+    // 🔹 Load background layer with all properties (static GeoJSON from GitHub)
     fetch("https://raw.githubusercontent.com/AeternalSifnos1/aeternal-map/main/all_properties_final2.geojson")
       .then(response => {
         console.log("📦 Fetch response:", response);
         if (!response.ok) {
           throw new Error(`❌ HTTP error ${response.status}: ${response.statusText}`);
         }
-        return response.text(); // Get raw text first
+        return response.text();
       })
       .then(text => {
         console.log("📄 Raw GeoJSON text:", text.slice(0, 500));
@@ -47,14 +47,16 @@
         }
 
         const layer = L.geoJSON(geojson, {
-          style: {
-            color: "#000000",   // 🔧 black border
-            weight: 2,
-            fill: false         // 🔧 no fill
-          },
+          style: feature => ({
+            color: feature.properties?.stroke || "#000000",
+            weight: feature.properties?.["stroke-width"] || 2,
+            opacity: feature.properties?.["stroke-opacity"] || 1,
+            fillColor: feature.properties?.fill || "#3388ff",
+            fillOpacity: feature.properties?.["fill-opacity"] ?? 0.4
+          }),
           onEachFeature: function (feature, layer) {
-            const name = feature.properties?.name || "Unnamed";
-            layer.bindPopup("All property: " + name);
+            const popupText = feature.properties?.description || feature.properties?.name || "Unnamed";
+            layer.bindPopup(popupText);
           }
         }).addTo(map);
 
