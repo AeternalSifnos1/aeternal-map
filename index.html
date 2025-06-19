@@ -27,7 +27,7 @@
 
     L.control.layers({ "Streets": streets, "Satellite": satellite }).addTo(map);
 
-    // ✅ Static GeoJSON base layer
+    // 🔹 Static base layer (from GitHub)
     fetch("https://raw.githubusercontent.com/AeternalSifnos1/aeternal-map/main/all_properties_final12.geojson")
       .then(response => {
         if (!response.ok) throw new Error(`HTTP error ${response.status}`);
@@ -36,7 +36,7 @@
       .then(geojson => {
         const layer = L.geoJSON(geojson, {
           style: feature => {
-            const isPolygon = ["Polygon", "MultiPolygon"].includes(feature.geometry?.type);
+            const isPolygon = feature.geometry?.type === "Polygon" || feature.geometry?.type === "MultiPolygon";
             return {
               color: feature.properties?.stroke || "#000000",
               weight: feature.properties?.["stroke-width"] || 2,
@@ -52,9 +52,9 @@
         }).addTo(map);
         map.fitBounds(layer.getBounds());
       })
-      .catch(error => console.error("❌ GeoJSON fetch error:", error));
+      .catch(error => console.error("❌ Static layer fetch error:", error));
 
-    // ✅ Airtable Sorted View layer
+    // 🔸 Airtable Sorted View fetch
     const airtableToken = "patsnkfWfJRM1aWFZ.d0519fd5c19ba01c6aacb4f4481b6f7e381d491fac7b52dfed1e10badb106a98";
     const baseId = "appuRVEX7ET1BArbF";
     const tableName = "Aeternal Properties";
@@ -67,21 +67,11 @@
         Authorization: `Bearer ${airtableToken}`
       }
     })
-    .then(async response => {
-      const text = await response.text();
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch (e) {
-        console.error("❌ Error parsing Airtable response JSON:", e.message);
-        return;
-      }
-
-      if (!data.records || !Array.isArray(data.records)) {
-        console.warn("⚠️ No 'records' found in Airtable response.");
-        return;
-      }
-
+    .then(response => {
+      if (!response.ok) throw new Error(`HTTP ${response.status} - ${response.statusText}`);
+      return response.json();
+    })
+    .then(data => {
       data.records.forEach(record => {
         const geojsonField = record.fields["geojson"];
         if (geojsonField) {
@@ -89,22 +79,22 @@
             const geojson = typeof geojsonField === 'string' ? JSON.parse(geojsonField) : geojsonField;
             L.geoJSON(geojson, {
               style: feature => {
-                const isPolygon = ["Polygon", "MultiPolygon"].includes(feature.geometry?.type);
+                const isPolygon = feature.geometry?.type === "Polygon" || feature.geometry?.type === "MultiPolygon";
                 return {
-                  color: feature.properties?.stroke || "#ffff00", // yellow stroke
-                  weight: feature.properties?.["stroke-width"] || 3,
-                  opacity: feature.properties?.["stroke-opacity"] || 1,
-                  fillColor: isPolygon ? feature.properties?.fill || "#0000ff" : undefined, // blue fill
-                  fillOpacity: isPolygon ? feature.properties?.["fill-opacity"] ?? 0.5 : 0
+                  color: "#ffff00", // yellow outline
+                  fillColor: "#0000ff", // blue fill
+                  fillOpacity: isPolygon ? 0.5 : 0,
+                  weight: 3,
+                  opacity: 1
                 };
               },
-              onEachFeature: (feature, layer) => {
+              onEachFeature: function (feature, layer) {
                 const popupText = feature.properties?.description || feature.properties?.name || "No description";
                 layer.bindPopup(popupText);
               }
             }).addTo(map);
-          } catch (err) {
-            console.error("❌ Invalid GeoJSON in record:", record.id, err);
+          } catch (e) {
+            console.error("Invalid GeoJSON in record:", record.id, e);
           }
         }
       });
