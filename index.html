@@ -28,7 +28,7 @@
     L.control.layers({ "Streets": streets, "Satellite": satellite }).addTo(map);
 
     // 🔹 Load static portfolio layer
-    fetch("https://raw.githubusercontent.com/AeternalSifnos1/aeternal-map/main/final_portfolio_static_layer.geojson")
+    fetch("https://raw.githubusercontent.com/AeternalSifnos1/aeternal-map/main/final_portfolio_static_layer2.geojson")
       .then(response => response.json())
       .then(geojson => {
         const layer = L.geoJSON(geojson, {
