@@ -27,7 +27,7 @@
 
     L.control.layers({ "Streets": streets, "Satellite": satellite }).addTo(map);
 
-    // ✅ Static GeoJSON background: PORTFOLIO + red roads
+    // ✅ Static GeoJSON background: portfolio + red roads
     fetch("https://raw.githubusercontent.com/AeternalSifnos1/aeternal-map/main/all_properties_final_PORTFOLIO_RED_FINAL.geojson")
       .then(response => response.json())
       .then(geojson => {
@@ -37,9 +37,12 @@
             const isPolygon = type === "Polygon" || type === "MultiPolygon";
             const isLine = type === "LineString" || type === "MultiLineString";
 
+            // 🔍 Debug stroke color in browser console
+            console.log("🔴 Feature stroke:", feature.properties?.stroke, "Type:", type);
+
             return {
               color: feature.properties?.stroke || (isLine ? "#000000" : "#000000"),
-              weight: feature.properties?.["stroke-width"] || 2,
+              weight: feature.properties?.["stroke-width"] || (isLine ? 4 : 2),
               opacity: feature.properties?.["stroke-opacity"] || 1,
               fillColor: isPolygon ? feature.properties?.fill : undefined,
               fillOpacity: isPolygon ? feature.properties?.["fill-opacity"] ?? 0.4 : 0
@@ -94,27 +97,4 @@
                 const type = feature.geometry?.type;
                 const isPolygon = type === "Polygon" || type === "MultiPolygon";
                 return {
-                  color: feature.properties?.stroke || "#ffff00",
-                  weight: feature.properties?.["stroke-width"] || 3,
-                  opacity: feature.properties?.["stroke-opacity"] || 1,
-                  fillColor: isPolygon ? feature.properties?.fill || "#3388ff" : undefined,
-                  fillOpacity: isPolygon ? feature.properties?.["fill-opacity"] ?? 0.5 : 0
-                };
-              },
-              onEachFeature: (feature, layer) => {
-                const popupText = feature.properties?.description || feature.properties?.name || "No description";
-                layer.bindPopup(popupText);
-              }
-            }).addTo(map);
-          } catch (err) {
-            console.error("❌ Invalid GeoJSON in record:", record.id, err);
-          }
-        }
-      });
-    })
-    .catch(error => {
-      console.error("❌ Airtable fetch error:", error);
-    });
-  </script>
-</body>
-</html>
+                  color: feature.properties?.stro
