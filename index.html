@@ -27,8 +27,8 @@
 
     L.control.layers({ "Streets": streets, "Satellite": satellite }).addTo(map);
 
-    // 🔹 Static base layer
-    fetch("https://raw.githubusercontent.com/AeternalSifnos1/aeternal-map/main/cleaned_portfolio_without_official_roads1.geojson")
+    // 🔹 Static background layer from GitHub
+    fetch("https://raw.githubusercontent.com/AeternalSifnos1/aeternal-map/main/cleaned_portfolio_without_official_roads.geojson")
       .then(response => {
         if (!response.ok) throw new Error(`HTTP error ${response.status}`);
         return response.json();
@@ -36,7 +36,7 @@
       .then(geojson => {
         const layer = L.geoJSON(geojson, {
           style: feature => {
-            const isPolygon = ["Polygon", "MultiPolygon"].includes(feature.geometry?.type);
+            const isPolygon = feature.geometry?.type === "Polygon" || feature.geometry?.type === "MultiPolygon";
             return {
               color: feature.properties?.stroke || "#000000",
               weight: feature.properties?.["stroke-width"] || 2,
@@ -54,7 +54,7 @@
       })
       .catch(error => console.error("❌ Static layer fetch error:", error));
 
-    // 🔸 Airtable Sorted View
+    // 🔸 Airtable Sorted View layer
     const airtableToken = "patsnkfWfJRM1aWFZ.d0519fd5c19ba01c6aacb4f4481b6f7e381d491fac7b52dfed1e10badb106a98";
     const baseId = "appuRVEX7ET1BArbF";
     const tableName = "Aeternal Properties";
@@ -81,11 +81,11 @@
               style: feature => {
                 const isPolygon = feature.geometry?.type === "Polygon" || feature.geometry?.type === "MultiPolygon";
                 return {
-                  color: "#ffff00",       // yellow stroke
+                  color: "#003399",       // dark blue outline
                   weight: 3,
                   opacity: 1,
-                  fillColor: isPolygon ? "#0000ff" : undefined, // blue fill
-                  fillOpacity: isPolygon ? 0.4 : 0
+                  fillColor: isPolygon ? "#0044cc" : undefined, // dark blue fill
+                  fillOpacity: isPolygon ? 0.6 : 0
                 };
               },
               onEachFeature: (feature, layer) => {
