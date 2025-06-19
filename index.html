@@ -78,12 +78,16 @@
           try {
             const geojson = typeof geojsonField === 'string' ? JSON.parse(geojsonField) : geojsonField;
             L.geoJSON(geojson, {
-              style: feature => ({
-                color: feature.properties?.stroke || "#3388ff",
-                fillColor: feature.properties?.fill || "#3388ff",
-                fillOpacity: feature.properties?.["fill-opacity"] || 0.5,
-                weight: feature.properties?.["stroke-width"] || 2,
-              }),
+              style: feature => {
+                const isPolygon = feature.geometry?.type === "Polygon" || feature.geometry?.type === "MultiPolygon";
+                return {
+                  color: feature.properties?.stroke || "#ffff00", // yellow stroke fallback
+                  weight: feature.properties?.["stroke-width"] || 3,
+                  opacity: feature.properties?.["stroke-opacity"] || 1,
+                  fillColor: isPolygon ? feature.properties?.fill || "#3388ff" : undefined, // blue fill fallback
+                  fillOpacity: isPolygon ? feature.properties?.["fill-opacity"] ?? 0.5 : 0
+                };
+              },
               onEachFeature: function (feature, layer) {
                 const popupText = feature.properties?.description || feature.properties?.name || "No description";
                 layer.bindPopup(popupText);
