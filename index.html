@@ -27,8 +27,8 @@
 
     L.control.layers({ "Streets": streets, "Satellite": satellite }).addTo(map);
 
-    // 🔹 Load background layer with all properties (static GeoJSON from GitHub)
-    fetch("https://raw.githubusercontent.com/AeternalSifnos1/aeternal-map/main/all_properties_final_SIFNOS_RED_FIXED.geojson")
+    // ✅ Load the working background file (known-good)
+    fetch("https://raw.githubusercontent.com/AeternalSifnos1/aeternal-map/main/all_properties_final_PORTFOLIO_CORRECTED.geojson")
       .then(response => {
         if (!response.ok) throw new Error(`HTTP error ${response.status}`);
         return response.json();
@@ -54,7 +54,7 @@
       })
       .catch(error => console.error("GeoJSON fetch error:", error));
 
-    // 🔸 Load active properties from Airtable (Sorted View)
+    // ✅ Load Airtable (Sorted View)
     const airtableToken = "patTuKbZCmrd1cGDR.80fe79db151a03b5489275ef8815b1625c13d5acd2a3bcb445512c032ecb180b";
     const baseId = "appuRVEX7ET1BArfF";
     const tableName = "Aeternal Properties";
@@ -81,10 +81,10 @@
               style: feature => {
                 const isPolygon = feature.geometry?.type === "Polygon" || feature.geometry?.type === "MultiPolygon";
                 return {
-                  color: feature.properties?.stroke || "#ffff00", // yellow stroke fallback
+                  color: feature.properties?.stroke || "#ffff00", // Yellow stroke fallback
                   weight: feature.properties?.["stroke-width"] || 3,
                   opacity: feature.properties?.["stroke-opacity"] || 1,
-                  fillColor: isPolygon ? feature.properties?.fill || "#3388ff" : undefined, // blue fill fallback
+                  fillColor: isPolygon ? feature.properties?.fill || "#3388ff" : undefined, // Blue fill fallback
                   fillOpacity: isPolygon ? feature.properties?.["fill-opacity"] ?? 0.5 : 0
                 };
               },
