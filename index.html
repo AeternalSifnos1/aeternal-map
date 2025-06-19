@@ -27,7 +27,7 @@
 
     L.control.layers({ "Streets": streets, "Satellite": satellite }).addTo(map);
 
-    // ✅ Static background from GitHub
+    // ✅ Static background GeoJSON fetch
     fetch("https://raw.githubusercontent.com/AeternalSifnos1/aeternal-map/main/all_properties_final_PORTFOLIO_CORRECTED.geojson")
       .then(response => response.json())
       .then(geojson => {
@@ -49,8 +49,68 @@
         }).addTo(map);
         map.fitBounds(layer.getBounds());
       })
-      .catch(error => console.error("GeoJSON fetch error:", error));
+      .catch(error => console.error("❌ GeoJSON fetch error:", error));
 
-    // ✅ Airtable Sorted View with new token
+    // ✅ Airtable Sorted View fetch
     const airtableToken = "patv4Z3rLJz0Nqfvw.5522383a284657a57c1a91fbc386e54effcf3eee02cb3ebe49cabed8982be017";
-    const baseId
+    const baseId = "appuRVEX7ET1BArfF";
+    const tableName = "Aeternal Properties";
+    const viewName = "Sorted View";
+
+    const apiUrl = `https://api.airtable.com/v0/${baseId}/${encodeURIComponent(tableName)}?view=${encodeURIComponent(viewName)}`;
+
+    fetch(apiUrl, {
+      headers: {
+        Authorization: `Bearer ${airtableToken}`
+      }
+    })
+    .then(async response => {
+      const text = await response.text();
+      console.log("🧾 Raw Airtable response:", text);
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error("❌ Error parsing Airtable response JSON:", e.message);
+        return;
+      }
+
+      if (!data.records || !Array.isArray(data.records)) {
+        console.warn("⚠️ No 'records' found in Airtable response.");
+        return;
+      }
+
+      data.records.forEach(record => {
+        const geojsonField = record.fields["geojson"];
+        if (geojsonField) {
+          try {
+            const geojson = typeof geojsonField === 'string' ? JSON.parse(geojsonField) : geojsonField;
+            L.geoJSON(geojson, {
+              style: feature => {
+                const isPolygon = feature.geometry?.type === "Polygon" || feature.geometry?.type === "MultiPolygon";
+                return {
+                  color: feature.properties?.stroke || "#ffff00",
+                  weight: feature.properties?.["stroke-width"] || 3,
+                  opacity: feature.properties?.["stroke-opacity"] || 1,
+                  fillColor: isPolygon ? feature.properties?.fill || "#3388ff" : undefined,
+                  fillOpacity: isPolygon ? feature.properties?.["fill-opacity"] ?? 0.5 : 0
+                };
+              },
+              onEachFeature: (feature, layer) => {
+                const popupText = feature.properties?.description || feature.properties?.name || "No description";
+                layer.bindPopup(popupText);
+              }
+            }).addTo(map);
+          } catch (err) {
+            console.error("❌ Invalid GeoJSON in record:", record.id, err);
+          }
+        }
+      });
+    })
+    .catch(error => {
+      console.error("❌ Airtable fetch error:", error);
+    });
+  </script>
+</body>
+</html>
