@@ -27,36 +27,36 @@
 
     L.control.layers({ "Streets": streets, "Satellite": satellite }).addTo(map);
 
-    // 🔹 Load background layer with all properties (static GeoJSON from GitHub)
-    fetch("https://raw.githubusercontent.com/AeternalSifnos1/aeternal-map/main/all_properties_final12.geojson")
-      .then(response => {
-        if (!response.ok) throw new Error(`HTTP error ${response.status}`);
-        return response.json();
-      })
+    // 🔹 Static portfolio layer
+    fetch("https://raw.githubusercontent.com/AeternalSifnos1/aeternal-map/main/final_portfolio_static_layer.geojson")
+      .then(response => response.json())
       .then(geojson => {
         const layer = L.geoJSON(geojson, {
           style: feature => {
-            const isPolygon = feature.geometry?.type === "Polygon" || feature.geometry?.type === "MultiPolygon";
+            const isPolygon = ["Polygon", "MultiPolygon"].includes(feature.geometry?.type);
             return {
               color: feature.properties?.stroke || "#000000",
-              weight: feature.properties?.["stroke-width"] || 2,
+              weight: feature.properties?.["stroke-width"] || 1,
               opacity: feature.properties?.["stroke-opacity"] || 1,
               fillColor: isPolygon ? feature.properties?.fill : undefined,
               fillOpacity: isPolygon ? feature.properties?.["fill-opacity"] ?? 0.4 : 0
             };
           },
-          onEachFeature: function (feature, layer) {
+          onEachFeature: (feature, layer) => {
             const popupText = feature.properties?.description || feature.properties?.name || "Unnamed";
             layer.bindPopup(popupText);
           }
         }).addTo(map);
-        map.fitBounds(layer.getBounds());
-      })
-      .catch(error => console.error("GeoJSON fetch error:", error));
 
-    // 🔸 Load active properties from Airtable (Sorted View)
-    const airtableToken = "patTuKbZCmrd1cGDR.80fe79db151a03b5489275ef8815b1625c13d5acd2a3bcb445512c032ecb180b";
-    const baseId = "appuRVEX7ET1BArfF";
+        if (layer.getBounds().isValid()) {
+          map.fitBounds(layer.getBounds());
+        }
+      })
+      .catch(error => console.error("❌ Static layer fetch error:", error));
+
+    // 🔸 Airtable Sorted View (blue fill, yellow outline)
+    const airtableToken = "patv4Z3rLJz0Nqfvw.5522383a284657a57c1a91fbc386e54effcf3eee02cb3ebe49cabed8982be017";
+    const baseId = "appuRVEX7ET1BArbF";
     const tableName = "Aeternal Properties";
     const viewName = "Sorted View";
 
@@ -67,24 +67,28 @@
         Authorization: `Bearer ${airtableToken}`
       }
     })
-    .then(response => {
-      if (!response.ok) throw new Error(`HTTP ${response.status} - ${response.statusText}`);
-      return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
+      if (!data.records) return;
+
       data.records.forEach(record => {
         const geojsonField = record.fields["geojson"];
         if (geojsonField) {
           try {
             const geojson = typeof geojsonField === 'string' ? JSON.parse(geojsonField) : geojsonField;
+
             L.geoJSON(geojson, {
-              style: feature => ({
-                color: feature.properties?.stroke || "#3388ff",
-                fillColor: feature.properties?.fill || "#3388ff",
-                fillOpacity: feature.properties?.["fill-opacity"] || 0.5,
-                weight: feature.properties?.["stroke-width"] || 2,
-              }),
-              onEachFeature: function (feature, layer) {
+              style: feature => {
+                const isPolygon = ["Polygon", "MultiPolygon"].includes(feature.geometry?.type);
+                return {
+                  color: feature.properties?.stroke || "#ffff00", // yellow outline
+                  weight: feature.properties?.["stroke-width"] || 3,
+                  opacity: feature.properties?.["stroke-opacity"] || 1,
+                  fillColor: isPolygon ? feature.properties?.fill || "#0000ff" : undefined, // blue fill
+                  fillOpacity: isPolygon ? feature.properties?.["fill-opacity"] ?? 0.5 : 0
+                };
+              },
+              onEachFeature: (feature, layer) => {
                 const popupText = feature.properties?.description || feature.properties?.name || "No description";
                 layer.bindPopup(popupText);
               }
@@ -96,7 +100,7 @@
       });
     })
     .catch(error => {
-      console.error("Error fetching Airtable data:", error);
+      console.error("❌ Airtable fetch error:", error);
     });
   </script>
 </body>
