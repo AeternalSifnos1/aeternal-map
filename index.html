@@ -27,7 +27,7 @@
 
     L.control.layers({ "Streets": streets, "Satellite": satellite }).addTo(map);
 
-    // ✅ Load the working background file (known-good)
+    // ✅ Static background layer
     fetch("https://raw.githubusercontent.com/AeternalSifnos1/aeternal-map/main/all_properties_final_PORTFOLIO_CORRECTED.geojson")
       .then(response => {
         if (!response.ok) throw new Error(`HTTP error ${response.status}`);
@@ -54,7 +54,7 @@
       })
       .catch(error => console.error("GeoJSON fetch error:", error));
 
-    // ✅ Load Airtable (Sorted View)
+    // ✅ Airtable Sorted View layer
     const airtableToken = "patTuKbZCmrd1cGDR.80fe79db151a03b5489275ef8815b1625c13d5acd2a3bcb445512c032ecb180b";
     const baseId = "appuRVEX7ET1BArfF";
     const tableName = "Aeternal Properties";
@@ -72,6 +72,12 @@
       return response.json();
     })
     .then(data => {
+      console.log("✅ Airtable response:", data);
+      if (!data.records || data.records.length === 0) {
+        console.warn("⚠️ No Airtable records returned.");
+        return;
+      }
+
       data.records.forEach(record => {
         const geojsonField = record.fields["geojson"];
         if (geojsonField) {
@@ -81,26 +87,26 @@
               style: feature => {
                 const isPolygon = feature.geometry?.type === "Polygon" || feature.geometry?.type === "MultiPolygon";
                 return {
-                  color: feature.properties?.stroke || "#ffff00", // Yellow stroke fallback
+                  color: feature.properties?.stroke || "#ffff00",  // yellow border
                   weight: feature.properties?.["stroke-width"] || 3,
                   opacity: feature.properties?.["stroke-opacity"] || 1,
-                  fillColor: isPolygon ? feature.properties?.fill || "#3388ff" : undefined, // Blue fill fallback
+                  fillColor: isPolygon ? feature.properties?.fill || "#3388ff" : undefined,  // blue fill
                   fillOpacity: isPolygon ? feature.properties?.["fill-opacity"] ?? 0.5 : 0
                 };
               },
-              onEachFeature: function (feature, layer) {
+              onEachFeature: (feature, layer) => {
                 const popupText = feature.properties?.description || feature.properties?.name || "No description";
                 layer.bindPopup(popupText);
               }
             }).addTo(map);
           } catch (e) {
-            console.error("Invalid GeoJSON in record:", record.id, e);
+            console.error("❌ Invalid GeoJSON in record:", record.id, e);
           }
         }
       });
     })
     .catch(error => {
-      console.error("Error fetching Airtable data:", error);
+      console.error("❌ Airtable fetch error:", error);
     });
   </script>
 </body>
