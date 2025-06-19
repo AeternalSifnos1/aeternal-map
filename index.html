@@ -27,7 +27,7 @@
 
     L.control.layers({ "Streets": streets, "Satellite": satellite }).addTo(map);
 
-    // ✅ Static base: Property paths and polygons (thin black)
+    // ✅ Static base: Property paths and polygons (preserves feature-specific style)
     fetch("https://raw.githubusercontent.com/AeternalSifnos1/aeternal-map/main/cleaned_base_only_property_paths.geojson")
       .then(response => response.json())
       .then(geojson => {
@@ -39,7 +39,7 @@
               weight: feature.properties?.["stroke-width"] || 1,
               opacity: feature.properties?.["stroke-opacity"] || 1,
               fillColor: isPolygon ? feature.properties?.fill : undefined,
-              fillOpacity: isPolygon ? feature.properties?.["fill-opacity"] ?? 0.0 : 0
+              fillOpacity: isPolygon ? feature.properties?.["fill-opacity"] ?? 0.4 : 0
             };
           },
           onEachFeature: (feature, layer) => {
@@ -86,30 +86,4 @@
         const geojsonField = record.fields["geojson"];
         if (geojsonField) {
           try {
-            const geojson = typeof geojsonField === 'string' ? JSON.parse(geojsonField) : geojsonField;
-            L.geoJSON(geojson, {
-              style: feature => {
-                const isPolygon = ["Polygon", "MultiPolygon"].includes(feature.geometry?.type);
-                return {
-                  color: feature.properties?.stroke || "#ffff00",
-                  weight: feature.properties?.["stroke-width"] || 3,
-                  opacity: feature.properties?.["stroke-opacity"] || 1,
-                  fillColor: isPolygon ? feature.properties?.fill || "#0000ff" : undefined,
-                  fillOpacity: isPolygon ? feature.properties?.["fill-opacity"] ?? 0.5 : 0
-                };
-              },
-              onEachFeature: (feature, layer) => {
-                const popupText = feature.properties?.description || feature.properties?.name || "No description";
-                layer.bindPopup(popupText);
-              }
-            }).addTo(map);
-          } catch (e) {
-            console.error("Invalid GeoJSON in Airtable record:", e);
-          }
-        }
-      });
-    })
-    .catch(error => console.error("Airtable fetch error:", error));
-  </script>
-</body>
-</html>
+            const geojson = typeof geojsonField ==
