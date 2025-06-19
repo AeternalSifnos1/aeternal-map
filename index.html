@@ -54,7 +54,7 @@
       .catch(error => console.error("❌ Static portfolio layer error:", error));
 
     // ✅ Static Layer 2: Sifnos Official Roads (in red)
-    fetch("https://raw.githubusercontent.com/AeternalSifnos1/aeternal-map/main/sifnos_official_roads.geojson")
+    fetch("https://raw.githubusercontent.com/AeternalSifnos1/aeternal-map/main/sifnos_official_roads_red.geojson")
       .then(response => {
         if (!response.ok) throw new Error(`HTTP error ${response.status}`);
         return response.json();
