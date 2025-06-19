@@ -27,7 +27,7 @@
 
     L.control.layers({ "Streets": streets, "Satellite": satellite }).addTo(map);
 
-    // 🔹 Load static base layer (portfolio map)
+    // ✅ Static GeoJSON base layer
     fetch("https://raw.githubusercontent.com/AeternalSifnos1/aeternal-map/main/all_properties_final12.geojson")
       .then(response => {
         if (!response.ok) throw new Error(`HTTP error ${response.status}`);
@@ -36,7 +36,7 @@
       .then(geojson => {
         const layer = L.geoJSON(geojson, {
           style: feature => {
-            const isPolygon = feature.geometry?.type === "Polygon" || feature.geometry?.type === "MultiPolygon";
+            const isPolygon = ["Polygon", "MultiPolygon"].includes(feature.geometry?.type);
             return {
               color: feature.properties?.stroke || "#000000",
               weight: feature.properties?.["stroke-width"] || 2,
@@ -54,8 +54,8 @@
       })
       .catch(error => console.error("❌ GeoJSON fetch error:", error));
 
-    // 🔸 Load Airtable Sorted View
-    const airtableToken = "patv4Z3rLJz0Nqfvw.b9c103e2e614bec76ce053a076cde0ed6d15fd711c19a5c75a079a1e3b4d4ed9";
+    // ✅ Airtable Sorted View layer
+    const airtableToken = "patsnkfWfJRM1aWFZ.d0519fd5c19ba01c6aacb4f4481b6f7e381d491fac7b52dfed1e10badb106a98";
     const baseId = "appuRVEX7ET1BArbF";
     const tableName = "Aeternal Properties";
     const viewName = "Sorted View";
@@ -89,7 +89,7 @@
             const geojson = typeof geojsonField === 'string' ? JSON.parse(geojsonField) : geojsonField;
             L.geoJSON(geojson, {
               style: feature => {
-                const isPolygon = feature.geometry?.type === "Polygon" || feature.geometry?.type === "MultiPolygon";
+                const isPolygon = ["Polygon", "MultiPolygon"].includes(feature.geometry?.type);
                 return {
                   color: feature.properties?.stroke || "#ffff00", // yellow stroke
                   weight: feature.properties?.["stroke-width"] || 3,
