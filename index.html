@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Aeternal Properties Map</title>
+  <title>Static Base Layer Test</title>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
@@ -17,17 +17,11 @@
   <script>
     const map = L.map('map').setView([36.9457, 24.7559], 18);
 
-    const streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-      attribution: 'Tiles © Esri'
-    });
-
-    L.control.layers({ "Streets": streets, "Satellite": satellite }).addTo(map);
-
-    // ✅ Static base: Property paths and polygons (preserves feature-specific style)
+    // 🔹 Load static base layer with preserved styles
     fetch("https://raw.githubusercontent.com/AeternalSifnos1/aeternal-map/main/cleaned_base_only_property_paths.geojson")
       .then(response => response.json())
       .then(geojson => {
@@ -47,43 +41,9 @@
             layer.bindPopup(popupText);
           }
         }).addTo(map);
-      });
-
-    // ✅ Static overlay: Sifnos Official Roads (red lines only)
-    fetch("https://raw.githubusercontent.com/AeternalSifnos1/aeternal-map/main/sifnos_official_roads_only.geojson")
-      .then(response => response.json())
-      .then(roadsGeojson => {
-        L.geoJSON(roadsGeojson, {
-          style: {
-            color: "#ff0000",
-            weight: 2,
-            opacity: 1
-          },
-          onEachFeature: (feature, layer) => {
-            const popupText = feature.properties?.description || feature.properties?.name || "Road";
-            layer.bindPopup(popupText);
-          }
-        }).addTo(map);
-      });
-
-    // ✅ Airtable Sorted View (yellow outline + blue fill)
-    const airtableToken = "patv4Z3rLJz0Nqfvw.5522383a284657a57c1a91fbc386e54effcf3eee02cb3ebe49cabed8982be017";
-    const baseId = "appuRVEX7ET1BArbF";
-    const tableName = "Aeternal Properties";
-    const viewName = "Sorted View";
-
-    const apiUrl = `https://api.airtable.com/v0/${baseId}/${encodeURIComponent(tableName)}?view=${encodeURIComponent(viewName)}`;
-
-    fetch(apiUrl, {
-      headers: {
-        Authorization: `Bearer ${airtableToken}`
-      }
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (!data.records || !Array.isArray(data.records)) return;
-      data.records.forEach(record => {
-        const geojsonField = record.fields["geojson"];
-        if (geojsonField) {
-          try {
-            const geojson = typeof geojsonField ==
+        map.fitBounds(layer.getBounds());
+      })
+      .catch(error => console.error("❌ Static layer fetch error:", error));
+  </script>
+</body>
+</html>
