@@ -28,7 +28,7 @@
     L.control.layers({ "Streets": streets, "Satellite": satellite }).addTo(map);
 
     // 🔹 Static base layer
-    fetch("https://raw.githubusercontent.com/AeternalSifnos1/aeternal-map/main/cleaned_portfolio_without_official_roads.geojson")
+    fetch("https://raw.githubusercontent.com/AeternalSifnos1/aeternal-map/main/cleaned_portfolio_without_official_roads1.geojson")
       .then(response => {
         if (!response.ok) throw new Error(`HTTP error ${response.status}`);
         return response.json();
