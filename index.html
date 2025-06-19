@@ -101,7 +101,7 @@
               style: feature => {
                 const isPolygon = feature.geometry?.type === "Polygon" || feature.geometry?.type === "MultiPolygon";
                 return {
-                  color: "#ffff00", // Yellow stroke
+                  color: "#ffff00", // Yellow outline
                   fillColor: isPolygon ? "#00008b" : undefined, // Dark blue fill
                   fillOpacity: isPolygon ? 0.6 : 0,
                   weight: 3,
