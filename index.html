@@ -27,8 +27,8 @@
 
     L.control.layers({ "Streets": streets, "Satellite": satellite }).addTo(map);
 
-    // 🔹 Static base layer (from GitHub)
-    fetch("https://raw.githubusercontent.com/AeternalSifnos1/aeternal-map/main/all_properties_final2.geojson")
+    // 🔹 Load static base layer from GitHub
+    fetch("https://raw.githubusercontent.com/AeternalSifnos1/aeternal-map/main/all_properties_final1.geojson")
       .then(response => {
         if (!response.ok) throw new Error(`HTTP error ${response.status}`);
         return response.json();
@@ -36,7 +36,7 @@
       .then(geojson => {
         const layer = L.geoJSON(geojson, {
           style: feature => {
-            const isPolygon = feature.geometry?.type === "Polygon" || feature.geometry?.type === "MultiPolygon";
+            const isPolygon = ["Polygon", "MultiPolygon"].includes(feature.geometry?.type);
             return {
               color: feature.properties?.stroke || "#000000",
               weight: feature.properties?.["stroke-width"] || 2,
@@ -54,7 +54,7 @@
       })
       .catch(error => console.error("❌ Static layer fetch error:", error));
 
-    // 🔸 Airtable Sorted View fetch
+    // 🔸 Airtable Sorted View
     const airtableToken = "patsnkfWfJRM1aWFZ.d0519fd5c19ba01c6aacb4f4481b6f7e381d491fac7b52dfed1e10badb106a98";
     const baseId = "appuRVEX7ET1BArbF";
     const tableName = "Aeternal Properties";
@@ -81,14 +81,14 @@
               style: feature => {
                 const isPolygon = feature.geometry?.type === "Polygon" || feature.geometry?.type === "MultiPolygon";
                 return {
-                  color: "#ffff00", // yellow outline
-                  fillColor: "#0000ff", // blue fill
-                  fillOpacity: isPolygon ? 0.5 : 0,
+                  color: "#ffff00",       // yellow stroke
                   weight: 3,
-                  opacity: 1
+                  opacity: 1,
+                  fillColor: isPolygon ? "#0000ff" : undefined, // blue fill
+                  fillOpacity: isPolygon ? 0.4 : 0
                 };
               },
-              onEachFeature: function (feature, layer) {
+              onEachFeature: (feature, layer) => {
                 const popupText = feature.properties?.description || feature.properties?.name || "No description";
                 layer.bindPopup(popupText);
               }
