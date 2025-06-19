@@ -27,7 +27,7 @@
 
     L.control.layers({ "Streets": streets, "Satellite": satellite }).addTo(map);
 
-    // ✅ Load static layer from GitHub
+    // 🔹 Load static base layer (portfolio map)
     fetch("https://raw.githubusercontent.com/AeternalSifnos1/aeternal-map/main/all_properties_final12.geojson")
       .then(response => {
         if (!response.ok) throw new Error(`HTTP error ${response.status}`);
@@ -54,8 +54,8 @@
       })
       .catch(error => console.error("❌ GeoJSON fetch error:", error));
 
-    // ✅ Load Airtable “Sorted View”
-    const airtableToken = "patv4Z3rLJz0Nqfvw";
+    // 🔸 Load Airtable Sorted View
+    const airtableToken = "patv4Z3rLJz0Nqfvw.b9c103e2e614bec76ce053a076cde0ed6d15fd711c19a5c75a079a1e3b4d4ed9";
     const baseId = "appuRVEX7ET1BArbF";
     const tableName = "Aeternal Properties";
     const viewName = "Sorted View";
@@ -91,10 +91,10 @@
               style: feature => {
                 const isPolygon = feature.geometry?.type === "Polygon" || feature.geometry?.type === "MultiPolygon";
                 return {
-                  color: feature.properties?.stroke || "#ffff00",
+                  color: feature.properties?.stroke || "#ffff00", // yellow stroke
                   weight: feature.properties?.["stroke-width"] || 3,
                   opacity: feature.properties?.["stroke-opacity"] || 1,
-                  fillColor: isPolygon ? feature.properties?.fill || "#0000ff" : undefined,
+                  fillColor: isPolygon ? feature.properties?.fill || "#0000ff" : undefined, // blue fill
                   fillOpacity: isPolygon ? feature.properties?.["fill-opacity"] ?? 0.5 : 0
                 };
               },
