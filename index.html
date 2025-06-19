@@ -27,7 +27,7 @@
 
     L.control.layers({ "Streets": streets, "Satellite": satellite }).addTo(map);
 
-    // 🔹 Static portfolio layer
+    // 🔹 Load static portfolio layer
     fetch("https://raw.githubusercontent.com/AeternalSifnos1/aeternal-map/main/final_portfolio_static_layer.geojson")
       .then(response => response.json())
       .then(geojson => {
@@ -54,8 +54,8 @@
       })
       .catch(error => console.error("❌ Static layer fetch error:", error));
 
-    // 🔸 Airtable Sorted View (blue fill, yellow outline)
-    const airtableToken = "patv4Z3rLJz0Nqfvw.5522383a284657a57c1a91fbc386e54effcf3eee02cb3ebe49cabed8982be017";
+    // 🔸 Airtable Sorted View
+    const airtableToken = "patv4Z3rLJz0Nqfvw";
     const baseId = "appuRVEX7ET1BArbF";
     const tableName = "Aeternal Properties";
     const viewName = "Sorted View";
@@ -76,7 +76,6 @@
         if (geojsonField) {
           try {
             const geojson = typeof geojsonField === 'string' ? JSON.parse(geojsonField) : geojsonField;
-
             L.geoJSON(geojson, {
               style: feature => {
                 const isPolygon = ["Polygon", "MultiPolygon"].includes(feature.geometry?.type);
@@ -94,7 +93,7 @@
               }
             }).addTo(map);
           } catch (e) {
-            console.error("Invalid GeoJSON in record:", record.id, e);
+            console.error("❌ Invalid GeoJSON in record:", record.id, e);
           }
         }
       });
