@@ -27,7 +27,7 @@
 
     L.control.layers({ "Streets": streets, "Satellite": satellite }).addTo(map);
 
-    // 🔹 Load static background layer
+    // ✅ Load static layer from GitHub
     fetch("https://raw.githubusercontent.com/AeternalSifnos1/aeternal-map/main/all_properties_final12.geojson")
       .then(response => {
         if (!response.ok) throw new Error(`HTTP error ${response.status}`);
@@ -52,9 +52,9 @@
         }).addTo(map);
         map.fitBounds(layer.getBounds());
       })
-      .catch(error => console.error("GeoJSON fetch error:", error));
+      .catch(error => console.error("❌ GeoJSON fetch error:", error));
 
-    // 🔸 Airtable sorted view
+    // ✅ Load Airtable “Sorted View”
     const airtableToken = "patv4Z3rLJz0Nqfvw";
     const baseId = "appuRVEX7ET1BArbF";
     const tableName = "Aeternal Properties";
@@ -69,8 +69,6 @@
     })
     .then(async response => {
       const text = await response.text();
-      console.log("🧾 Raw Airtable response:", text);
-
       let data;
       try {
         data = JSON.parse(text);
