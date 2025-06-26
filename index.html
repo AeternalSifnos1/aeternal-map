@@ -76,10 +76,11 @@
       .catch(error => console.error("❌ Roads layer error:", error));
 
     // 🔷 Airtable Sorted View (Blue fill, Yellow outline)
-    const airtableToken = "patsnkfWfJRM1aWFZ.d0519fd5c19ba01c6aacb4f4481b6f7e381d491fac7b52dfed1e10badb106a98";
+    const airtableToken = "patBFSFQi1KcZz5Io.8b2437f6990f8ab5d648b9125cbe006a625225d5ed7c2edecc1d3c3bc1d50c5f";
     const baseId = "appJPM8TQlClN8qnl";
     const tableName = "Aeternal Properties";
     const viewName = "Sorted View";
+
     const apiUrl = `https://api.airtable.com/v0/${baseId}/${encodeURIComponent(tableName)}?view=${encodeURIComponent(viewName)}`;
 
     fetch(apiUrl, {
@@ -92,6 +93,7 @@
       return response.json();
     })
     .then(data => {
+      console.log("✅ Airtable records loaded:", data.records);
       data.records.forEach(record => {
         const geojsonField = record.fields["geojson"];
         if (geojsonField) {
@@ -114,8 +116,10 @@
               }
             }).addTo(map);
           } catch (err) {
-            console.error("❌ Invalid GeoJSON from Airtable:", err);
+            console.error("❌ Invalid GeoJSON from Airtable:", err, geojsonField);
           }
+        } else {
+          console.warn("⚠️ Record missing geojson field:", record);
         }
       });
     })
