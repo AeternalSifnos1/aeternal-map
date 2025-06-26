@@ -75,9 +75,9 @@
       })
       .catch(error => console.error("❌ Roads layer error:", error));
 
-    // 🔷 Airtable Sorted View (Blue fill, Yellow outline)
+    // 🔷 Airtable Layer: Sorted View
     const airtableToken = "patsnkfWfJRM1aWFZ.d0519fd5c19ba01c6aacb4f4481b6f7e381d491fac7b52dfed1e10badb106a98";
-    const baseId = "const baseId = "appJPM8TQlClN8qnl";
+    const baseId = "appJPM8TQlClN8qnl";
     const tableName = "Aeternal Properties";
     const viewName = "Sorted View";
     const apiUrl = `https://api.airtable.com/v0/${baseId}/${encodeURIComponent(tableName)}?view=${encodeURIComponent(viewName)}`;
